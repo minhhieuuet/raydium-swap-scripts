@@ -2,8 +2,9 @@ import { PubKey } from './../node_modules/@noble/curves/src/abstract/weierstrass
 import RaydiumSwap from './RaydiumSwap'
 import { Transaction, VersionedTransaction, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import dotenv from 'dotenv';
-import {Connection, PublicKey} from '@solana/web3.js'
+import { Connection, PublicKey } from '@solana/web3.js'
 import { LIQUIDITY_STATE_LAYOUT_V4 } from '@raydium-io/raydium-sdk';
+import BigNumber from 'bignumber.js';
 dotenv.config();
 // download file from https://api.raydium.io/v2/sdk/liquidity/mainnet.json
 const swap = async () => {
@@ -21,38 +22,40 @@ const swap = async () => {
   // Loading with pool keys from https://api.raydium.io/v2/sdk/liquidity/mainnet.json
   // download and save to pools.json
 
-  await raydiumSwap.loadPoolKeys()
+  // await raydiumSwap.loadPoolKeys()
   // console.log(`Loaded pool keys`)
 
   // // // Trying to find pool info in the json we loaded earlier and by comparing baseMint and tokenBAddress
   // let poolInfo = raydiumSwap.findPoolInfoForTokens(baseMint, quoteMint)
-  // // console.log(poolInfo)
+  // console.log(poolInfo)
 
-  // if (!poolInfo) poolInfo = await raydiumSwap.findRaydiumPoolInfo(baseMint, quoteMint)
+  let poolInfo = await raydiumSwap.findRaydiumPoolInfoByPoolId(baseMint, quoteMint, "9n3dSLrERZQp95dHXywft7xV8D8xnGFLaUHtEhQVaXaC")
+  console.log(poolInfo)
   // console.log(`Pool key`, poolInfo.id.toBase58());
 
   // console.log(poolInfo)
-  const POOL_ID = "9n3dSLrERZQp95dHXywft7xV8D8xnGFLaUHtEhQVaXaC"; // Pool id of PYTH-SOL
-  const poolId = new PublicKey(POOL_ID);
+  // const POOL_ID = "9n3dSLrERZQp95dHXywft7xV8D8xnGFLaUHtEhQVaXaC"; // Pool id of PYTH-SOL
+  // const poolId = new PublicKey(POOL_ID);
 
-  const info = await connection.getAccountInfo(poolId);
-  const poolState = LIQUIDITY_STATE_LAYOUT_V4.decode(info.data);
-  console.log(poolState);
-//   const baseDecimal = 10 ** poolState.baseDecimal.toNumber(); // e.g. 10 ^ 6
-//   const quoteDecimal = 10 ** poolState.quoteDecimal.toNumber();
+  // const info = await connection.getAccountInfo(poolId);
+  // const poolState = LIQUIDITY_STATE_LAYOUT_V4.decode(info.data);
+  // console.log(poolState);
+  // const baseDecimal = new BigNumber(10).shiftedBy(poolState.baseDecimal.toNumber()); // e.g. 10 ^ 6
+  // //   const quoteDecimal = 10 ** poolState.quoteDecimal.toNumber();
+  // const quoteDecimal = new BigNumber(10).shiftedBy(poolState.quoteDecimal.toNumber()); // e.g. 10 ^ 6
 
-//   console.log(poolState.baseVault.toBase58(), poolState.quoteVault.toBase58())
-//   const baseTokenAmount = await connection.getTokenAccountBalance(
-//     poolState.baseVault
-//   );
-//   const quoteTokenAmount = await connection.getTokenAccountBalance(
-//     poolState.quoteVault
-//   );
-//   console.log(baseTokenAmount.value.uiAmount, quoteTokenAmount.value.uiAmount);
-//   console.log(
-//     "base vault balance " + baseTokenAmount.value.uiAmount,
-//     "quote vault balance " + quoteTokenAmount.value.uiAmount,
-// );
+  //   console.log(poolState.baseVault.toBase58(), poolState.quoteVault.toBase58())
+    // const baseTokenAmount = await connection.getTokenAccountBalance(
+    //   poolState.baseVault
+    // );
+    // const quoteTokenAmount = await connection.getTokenAccountBalance(
+    //   poolState.quoteVault
+    // );
+    // console.log(baseTokenAmount.value.uiAmount, quoteTokenAmount.value.uiAmount);
+  //   console.log(
+  //     "base vault balance " + baseTokenAmount.value.uiAmount,
+  //     "quote vault balance " + quoteTokenAmount.value.uiAmount,
+  // );
 
   // if (!poolInfo) {
   //   throw new Error("Couldn't find the pool info")

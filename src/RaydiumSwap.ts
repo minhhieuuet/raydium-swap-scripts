@@ -89,6 +89,72 @@ class RaydiumSwap {
     return response.filter((r) => r.length > 0)[0] || []
   }
 
+  async findRaydiumPoolInfoByPoolId(baseMint: string, quoteMint: string, poolId?: string): Promise<LiquidityPoolKeys | undefined> {
+    const layout = LIQUIDITY_STATE_LAYOUT_V4
+
+    const programData = await this.getProgramAccounts(baseMint, quoteMint)
+    const connection = new Connection(process.env.RPC_URL, { commitment: 'confirmed' })
+    // const collectedPoolResults = programData
+    //   .map((info) => ({
+    //     id: new PublicKey(info.pubkey),
+    //     version: 4,
+    //     programId: new PublicKey(RaydiumSwap.RAYDIUM_V4_PROGRAM_ID),
+    //     ...layout.decode(info.account.data),
+    //   }))
+    //   .flat()
+    const info = await connection.getAccountInfo(new PublicKey(poolId));
+    const pool = LIQUIDITY_STATE_LAYOUT_V4.decode(info.data);
+    
+
+    if (!pool) return null
+
+    const market = await this.connection.getAccountInfo(new PublicKey(poolId)).then((item) => ({
+      programId: item.owner,
+      ...MARKET_STATE_LAYOUT_V3.decode(item.data),
+    }))
+
+    const authority = Liquidity.getAssociatedAuthority({
+      programId: new PublicKey(RaydiumSwap.RAYDIUM_V4_PROGRAM_ID),
+    }).publicKey
+
+    const marketProgramId = market.programId
+    const OPEN_BOOK_AMM = new PublicKey("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"); 
+
+    const poolKeys = {
+      id: new PublicKey(poolId),
+      baseMint: pool.baseMint,
+      quoteMint: pool.quoteMint,
+      lpMint: pool.lpMint,
+      baseDecimals: Number.parseInt(pool.baseDecimal.toString()),
+      quoteDecimals: Number.parseInt(pool.quoteDecimal.toString()),
+      lpDecimals: Number.parseInt(pool.baseDecimal.toString()),
+      version: 4,
+      programId: OPEN_BOOK_AMM,
+      openOrders: pool.openOrders,
+      targetOrders: pool.targetOrders,
+      baseVault: pool.baseVault,
+      quoteVault: pool.quoteVault,
+      marketVersion: 3,
+      authority: authority,
+      marketProgramId,
+      marketId: market.ownAddress,
+      marketAuthority: Market.getAssociatedAuthority({
+        programId: marketProgramId,
+        marketId: market.ownAddress,
+      }).publicKey,
+      marketBaseVault: market.baseVault,
+      marketQuoteVault: market.quoteVault,
+      marketBids: market.bids,
+      marketAsks: market.asks,
+      marketEventQueue: market.eventQueue,
+      withdrawQueue: pool.withdrawQueue,
+      lpVault: pool.lpVault,
+      lookupTableAccount: PublicKey.default,
+    } as LiquidityPoolKeys
+
+    return poolKeys
+  }
+
   async findRaydiumPoolInfo(baseMint: string, quoteMint: string): Promise<LiquidityPoolKeys | undefined> {
     const layout = LIQUIDITY_STATE_LAYOUT_V4
 
