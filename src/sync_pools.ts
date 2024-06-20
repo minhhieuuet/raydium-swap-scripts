@@ -5,4 +5,5 @@ import Downloader from 'nodejs-file-downloader';
     directory: "./",
     fileName: "pools.json", //This will be the file name.
   });
+  await downloader.download();
 })()
