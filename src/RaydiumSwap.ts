@@ -41,7 +41,7 @@ class RaydiumSwap {
 
   async loadPoolKeys() {
     if (existsSync('pools.json')) {
-      this.allPoolKeysJson = JSON.parse((await readFile('pools.json')).toString())
+      this.allPoolKeysJson = JSON.parse((await readFile('pools.json')).toString()).unOfficial
       return
     }
 
