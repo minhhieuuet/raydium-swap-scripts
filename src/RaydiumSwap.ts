@@ -242,6 +242,8 @@ class RaydiumSwap {
   ): Promise<Transaction | VersionedTransaction> {
     const directionIn = poolKeys.quoteMint.toString() == toToken
     const { minAmountOut, amountIn } = await this.calcAmountOut(poolKeys, amount, slippage, directionIn)
+    console.log(`Amount in: ${amountIn.toExact()} ${poolKeys.baseMint.toString()}`)
+    console.log(`Min amount out: ${minAmountOut.toExact()} ${poolKeys.quoteMint.toString()}`)
 
     const userTokenAccounts = await this.getOwnerTokenAccounts()
     const swapTransaction = await Liquidity.makeSwapInstructionSimple({
@@ -261,7 +263,8 @@ class RaydiumSwap {
         bypassAssociatedCheck: false,
       },
       computeBudgetConfig: {
-        microLamports: maxLamports,
+        microLamports: 50000,
+        units: 378130
       },
     })
 
