@@ -267,11 +267,7 @@ class RaydiumSwap {
       fixedSide: fixedSide,
       config: {
         bypassAssociatedCheck: false,
-      },
-      computeBudgetConfig: {
-        microLamports: 50000,
-        units: 378130
-      },
+      }
     })
     return swapTransaction;
 
