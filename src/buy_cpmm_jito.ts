@@ -92,6 +92,13 @@ export const swap = async () => {
       rpcData.configInfo!.tradeFeeRate
     )
 
+    const swapResult2 = CurveCalculator.swap(
+      swapResult.destinationAmountSwapped,
+      baseIn ? rpcData.quoteReserve : rpcData.baseReserve,
+      baseIn ? rpcData.baseReserve : rpcData.quoteReserve,
+      rpcData.configInfo!.tradeFeeRate
+    );
+
     console.log(swapResult.destinationAmountSwapped.toString(), "++++++++++++")
 
     const txResult = await raydium.cpmm.swap({
@@ -102,10 +109,18 @@ export const swap = async () => {
       slippage: 0.001,
       baseIn,
     })
+    const txSellResult = await raydium.cpmm.swap({
+      poolInfo,
+      poolKeys,
+      inputAmount: swapResult.destinationAmountSwapped,
+      swapResult: swapResult2,
+      slippage: 0.001,
+      baseIn: !baseIn,
+    })
     let { transaction } = txResult;
     const txDetail = transaction;
     // use jito
-    const jitoFee = "0.00001";
+    const jitoFee = "0.0001";
     const jitoFeeWallet = "Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY";
     const endpoint = "https://mainnet.block-engine.jito.wtf/api/v1/bundles";
     const fee = new CurrencyAmount(Currency.SOL, jitoFee, false).raw.toNumber();
@@ -138,11 +153,20 @@ export const swap = async () => {
     }).compileToV0Message();
     const swapTx = new VersionedTransaction(swapMessage);
     swapTx.sign([wallet.payer]);
+    const swapSellMessage = new TransactionMessage({
+      payerKey: wallet.publicKey,
+      recentBlockhash: recentBlockhashForSwap.blockhash,
+      //@ts-ignore
+      instructions: txSellResult.transaction.instructions,
+    }).compileToV0Message();
+    const swapSellTx = new VersionedTransaction(swapSellMessage);
+    swapSellTx.sign([wallet.payer]);
 
     const jitoTxsignature = bs58.encode(jitoFeeTx.signatures[0]);
     const serializedjitoFeeTx = bs58.encode(jitoFeeTx.serialize());
     const serializedTransaction = bs58.encode(swapTx.serialize());
-    const serializedTransactions = [serializedjitoFeeTx, serializedTransaction];
+    const serializedSellTransaction = bs58.encode(swapSellTx.serialize());
+    const serializedTransactions = [serializedjitoFeeTx, serializedTransaction, serializedSellTransaction];
     const res = await axios.post(endpoint, {
       jsonrpc: '2.0',
       id: 1,
